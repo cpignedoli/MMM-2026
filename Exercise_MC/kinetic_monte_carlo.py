@@ -149,7 +149,7 @@ def total_rate(events,rates):
 
 ### select randomly an event from the list of possible events
 def find_event(R,rates,events):
-    sum__l=0
+    sum_l=0
     rho1=np.random.random()
     target=rho1*R
     sum_l=rates[events[0][1]]
