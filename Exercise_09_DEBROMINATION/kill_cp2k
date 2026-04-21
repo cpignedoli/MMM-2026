@@ -1,0 +1,2 @@
+
+for a in `ps aux | grep cp2k_shell.psmp | grep -v grep | awk '{print $2}' `; do kill -9 $a; done
