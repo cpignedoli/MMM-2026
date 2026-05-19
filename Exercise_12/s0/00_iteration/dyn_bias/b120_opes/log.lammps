@@ -1,0 +1,149 @@
+LAMMPS (2 Aug 2023)
+variable        NSTEPS1         equal 20000000
+variable        DUMP_FREQ       equal 40
+variable        TEMP            equal 300
+variable	SEED1           equal 41939
+variable	SEED2           equal 21934
+variable        TAU_T           equal 0.05
+variable        TAU_P           equal 0.25
+
+units           metal
+boundary        p p p
+
+restart 100000 lmp.restart
+atom_style      atomic
+neigh_modify    delay 10 every 1
+
+#read_restart    RESTART
+read_data       geom.lmp
+Reading data file ...
+  orthogonal box = (-15 -15 -15) to (15 15 15)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  19 atoms
+  read_data CPU = 0.008 seconds
+mass    1       12.011
+mass    2       1.00784
+mass    3       14.0067
+
+
+
+#pair_style deepmd ../../1model/frozen_model.pb ../../2model/frozen_model.pb ../../3model/frozen_model.pb ../../4model/frozen_model.pb out_freq ${DUMP_FREQ} out_file model_devi.out
+pair_style deepmd ../../1model/frozen_model.pb ../../2model/frozen_model.pb ../../3model/frozen_model.pb ../../4model/frozen_model.pb out_freq ${DUMP_FREQ} out_file model_devi.out
+pair_style deepmd ../../1model/frozen_model.pb ../../2model/frozen_model.pb ../../3model/frozen_model.pb ../../4model/frozen_model.pb out_freq 40 out_file model_devi.out
+Summary of lammps deepmd module ...
+  >>> Info of deepmd-kit:
+  installed to:       /home/jovyan/deepmd-kit
+  source:             v2.2.11
+  source branch:      HEAD
+  source commit:      84ca63ca
+  source commit at:   2024-07-03 23:01:07 +0800
+  support model ver.: 1.1 
+  build variant:      cpu
+  build with tf inc:  /home/jovyan/venv-deepmd/lib/python3.9/site-packages/tensorflow/include;/home/jovyan/venv-deepmd/lib/python3.9/site-packages/tensorflow/include
+  build with tf lib:  /home/jovyan/venv-deepmd/lib/python3.9/site-packages/tensorflow/libtensorflow_cc.so
+  set tf intra_op_parallelism_threads: 0
+  set tf inter_op_parallelism_threads: 0
+  >>> Info of lammps module:
+  use deepmd-kit at:  /home/jovyan/deepmd-kit
+  source:             v2.2.11
+  source branch:      HEAD
+  source commit:      84ca63ca
+  source commit at:   2024-07-03 23:01:07 +0800
+  build float prec:   double
+  build with tf inc:  /home/jovyan/venv-deepmd/lib/python3.9/site-packages/tensorflow/include;/home/jovyan/venv-deepmd/lib/python3.9/site-packages/tensorflow/include
+  build with tf lib:  /home/jovyan/venv-deepmd/lib/python3.9/site-packages/tensorflow/libtensorflow_cc.so
+pair_coeff * *
+
+# TIMESTEP
+timestep	0.00025  #ps
+thermo          ${DUMP_FREQ}
+thermo          40
+thermo_style    custom step temp pe ke etotal density press vol lx ly lz xy xz yz
+thermo_modify 	flush yes
+
+# DUMP
+dump            myDump all xyz ${DUMP_FREQ} dump.xyz
+dump            myDump all xyz 40 dump.xyz
+dump_modify     myDump append yes element C H N
+
+# run- NVT
+velocity        all create ${TEMP} ${SEED2} dist gaussian
+velocity        all create 300 ${SEED2} dist gaussian
+velocity        all create 300 21934 dist gaussian
+fix             dpgen_plm all plumed plumedfile plumed.dat  outfile output.plumed
+fix             2 all nve
+fix             3 all temp/csvr ${TEMP} ${TEMP} ${TAU_T} ${SEED2}
+fix             3 all temp/csvr 300 ${TEMP} ${TAU_T} ${SEED2}
+fix             3 all temp/csvr 300 300 ${TAU_T} ${SEED2}
+fix             3 all temp/csvr 300 300 0.05 ${SEED2}
+fix             3 all temp/csvr 300 300 0.05 21934
+run             ${NSTEPS1}
+run             20000000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- USER-DEEPMD package:
+
+@article{Wang_ComputPhysCommun_2018_v228_p178,
+  author = {Wang, Han and Zhang, Linfeng and Han, Jiequn and E, Weinan},
+  doi = {10.1016/j.cpc.2018.03.016},
+  url = {https://doi.org/10.1016/j.cpc.2018.03.016},
+  year = 2018,
+  month = {jul},
+  publisher = {Elsevier {BV}},
+  volume = 228,
+  journal = {Comput. Phys. Commun.},
+  title = {{DeePMD-kit: A deep learning package for many-body potential energy representation and molecular dynamics}},
+  pages = {178--184}
+}
+@misc{Zeng_JChemPhys_2023_v159_p054801,
+  title  = {{DeePMD-kit v2: A software package for deep potential models}},
+  author =   {Jinzhe Zeng and Duo Zhang and Denghui Lu and Pinghui Mo and Zeyu Li
+         and Yixiao Chen and Mari{\'a}n Rynik and Li'ang Huang and Ziyao Li and 
+         Shaochen Shi and Yingze Wang and Haotian Ye and Ping Tuo and Jiabin
+         Yang and Ye Ding and Yifan Li and Davide Tisi and Qiyu Zeng and Han 
+         Bao and Yu Xia and Jiameng Huang and Koki Muraoka and Yibo Wang and 
+         Junhan Chang and Fengbo Yuan and Sigbj{\o}rn L{\o}land Bore and Chun
+         Cai and Yinnian Lin and Bo Wang and Jiayan Xu and Jia-Xin Zhu and 
+         Chenxing Luo and Yuzhi Zhang and Rhys E A Goodall and Wenshuo Liang
+         and Anurag Kumar Singh and Sikai Yao and Jingchao Zhang and Renata
+         Wentzcovitch and Jiequn Han and Jie Liu and Weile Jia and Darrin M
+         York and Weinan E and Roberto Car and Linfeng Zhang and Han Wang},
+  journal =  {J. Chem. Phys.},
+  volume =   159,
+  issue =    5,  
+  year =    2023,
+  pages  =   054801,
+  doi =      {10.1063/5.0155600},
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 10 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8
+  ghost atom cutoff = 8
+  binsize = 4, bins = 8 8 8
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair deepmd, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.065 | 3.065 | 3.065 Mbytes
+   Step          Temp          PotEng         KinEng         TotEng        Density         Press          Volume           Lx             Ly             Lz             Xy             Xz             Yz      
+         0   300           -12443.561      0.69800478    -12442.863      0.0088669777  -142.95763      27000          30             30             30             0              0              0            
+        40   223.97128     -12444.565      0.52111009    -12444.044      0.0088669777   242.39831      27000          30             30             30             0              0              0            
+        80   215.34296     -12444.464      0.50103472    -12443.963      0.0088669777   162.69005      27000          30             30             30             0              0              0            
+       120   190.58515     -12444.332      0.44343116    -12443.889      0.0088669777   25.245478      27000          30             30             30             0              0              0            
+       160   183.80686     -12444.344      0.42766022    -12443.917      0.0088669777   162.99953      27000          30             30             30             0              0              0            
+       200   271.50367     -12444.34       0.63170286    -12443.708      0.0088669777   107.10242      27000          30             30             30             0              0              0            
+       240   260.7726      -12444.209      0.60673508    -12443.602      0.0088669777  -227.0178       27000          30             30             30             0              0              0            
+       280   265.91805     -12444.208      0.61870689    -12443.589      0.0088669777  -70.354153      27000          30             30             30             0              0              0            
+       320   252.36957     -12444.182      0.58718389    -12443.595      0.0088669777  -73.81475       27000          30             30             30             0              0              0            
+       360   275.75155     -12444.318      0.64158635    -12443.676      0.0088669777  -217.98407      27000          30             30             30             0              0              0            
